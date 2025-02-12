@@ -117,13 +117,15 @@ const ExpenseModal = ({ showModal, setShowModal, selectedExpense, setExpenses })
                         <Form.Group controlId="description" className="mt-2">
                             <Form.Label className="floating-label">Description (Optional)</Form.Label>
                             <Form.Control
-                                type="text"
+                                as="textarea"
+                                rows={4}
                                 placeholder="Enter description"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 className="form-control"
                             />
                         </Form.Group>
+
 
                         <Form.Group controlId="category_id" className="mt-2">
                             <Form.Label className="floating-label">Category</Form.Label>
