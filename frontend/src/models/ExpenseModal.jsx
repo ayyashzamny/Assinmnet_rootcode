@@ -49,6 +49,11 @@ const ExpenseModal = ({ showModal, setShowModal, selectedExpense, setExpenses })
     }, [selectedExpense]); // Only run when selectedExpense changes
 
     const handleSubmit = async () => {
+        // Check if all required fields are filled
+        if (!title || !category_id || !amount || !date) {
+            Swal.fire("Error", "All required fields must be filled!", "error"); // SweetAlert error
+            return;
+        }
         try {
             const expenseData = { title, description, category_id, amount, date };
 
@@ -105,11 +110,12 @@ const ExpenseModal = ({ showModal, setShowModal, selectedExpense, setExpenses })
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 className="form-control"
+                                required
                             />
                         </Form.Group>
 
                         <Form.Group controlId="description" className="mt-2">
-                            <Form.Label className="floating-label">Description</Form.Label>
+                            <Form.Label className="floating-label">Description (Optional)</Form.Label>
                             <Form.Control
                                 type="text"
                                 placeholder="Enter description"
@@ -119,7 +125,6 @@ const ExpenseModal = ({ showModal, setShowModal, selectedExpense, setExpenses })
                             />
                         </Form.Group>
 
-                        {/* category was not auto selected in the dropdown in edit view */}
                         <Form.Group controlId="category_id" className="mt-2">
                             <Form.Label className="floating-label">Category</Form.Label>
                             <div className="d-flex align-items-center">
@@ -128,6 +133,7 @@ const ExpenseModal = ({ showModal, setShowModal, selectedExpense, setExpenses })
                                     value={category_id}
                                     onChange={(e) => setCategoryId(e.target.value)}
                                     className="mr-2"
+                                    required
                                 >
                                     <option value="">Select a Category</option>
                                     {categories.map((category) => (
@@ -150,6 +156,7 @@ const ExpenseModal = ({ showModal, setShowModal, selectedExpense, setExpenses })
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
                                 className="form-control"
+                                required
                             />
                         </Form.Group>
 
@@ -160,6 +167,7 @@ const ExpenseModal = ({ showModal, setShowModal, selectedExpense, setExpenses })
                                 value={date}
                                 onChange={(e) => setDate(e.target.value)}
                                 className="form-control"
+                                required
                             />
                         </Form.Group>
                     </Form>
@@ -173,6 +181,7 @@ const ExpenseModal = ({ showModal, setShowModal, selectedExpense, setExpenses })
                     </Button>
                 </Modal.Footer>
             </Modal>
+
 
             {/* Add Category Modal */}
             <Modal show={showAddCategoryModal} onHide={() => setShowAddCategoryModal(false)}>
