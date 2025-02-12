@@ -92,4 +92,26 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
+// Get today's expenses by category
+router.get("/today-expenses", async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+        const pool = await connectToDB();
+        
+        const [results] = await pool.query(`
+            SELECT categories.name AS category, 
+                   SUM(expenses.amount) AS totalAmount
+            FROM expenses
+            JOIN categories ON expenses.category_id = categories.id
+            WHERE DATE(expenses.date) = ?
+            GROUP BY categories.name
+        `, [today]);
+
+        res.status(200).json(results);  // Send the results as JSON
+    } catch (error) {
+        console.error('Error fetching today\'s expenses:', error);
+        res.status(500).json({ error: 'Failed to fetch expenses' });
+    }
+});
+
 module.exports = router;

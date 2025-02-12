@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Bar, Line } from "react-chartjs-2"; // Importing chart components
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, PointElement, LineElement } from "chart.js";
+import { Bar } from "react-chartjs-2"; // Importing bar chart component
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
 
 // Registering necessary chart types
 ChartJS.register(
@@ -10,14 +10,11 @@ ChartJS.register(
     BarElement,
     Title,
     Tooltip,
-    Legend,
-    PointElement, // Register PointElement for line charts
-    LineElement // Register LineElement for line charts
+    Legend
 );
 
 const Dashboard = () => {
     const [categoryExpenses, setCategoryExpenses] = useState([]);
-    const [monthlyExpenses, setMonthlyExpenses] = useState([]);
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
@@ -25,44 +22,34 @@ const Dashboard = () => {
         const fetchCategoryExpenses = async () => {
             try {
                 const response = await axios.get("http://localhost:5050/api/expenses");
-                setCategoryExpenses(response.data);
-            } catch (error) {
-                console.error("Error fetching category expenses:", error);
-            }
-        };
-
-        // Fetch monthly expenses for the growth graph, filtered by month
-        const fetchMonthlyExpenses = async () => {
-            try {
-                const response = await axios.get("http://localhost:5050/api/expenses");
                 const expenses = response.data;
 
-                // Group expenses by month
-                const groupedByMonth = expenses.reduce((acc, expense) => {
-                    const month = new Date(expense.date).getMonth(); // Get the month (0-11)
-                    if (!acc[month]) {
-                        acc[month] = 0;
+                // Group expenses by category and calculate the total amount for each category
+                const groupedByCategory = expenses.reduce((acc, expense) => {
+                    const category = expense.category; // Assuming the category is in `expense.category`
+                    if (!acc[category]) {
+                        acc[category] = 0;
                     }
-                    acc[month] += expense.totalAmount; // Add the expense to the total for the month
+                    acc[category] += expense.amount; // Add the amount for the category
                     return acc;
                 }, {});
 
-                // Prepare monthly expenses data for chart
-                const monthlyData = Object.keys(groupedByMonth).map((month) => ({
-                    month: month + 1, // Convert to human-readable month (1-12)
-                    totalAmount: groupedByMonth[month],
+                // Prepare category expenses data for chart
+                const categoryData = Object.keys(groupedByCategory).map((category) => ({
+                    category,
+                    totalAmount: groupedByCategory[category],
                 }));
 
-                setMonthlyExpenses(monthlyData);
+                setCategoryExpenses(categoryData);
             } catch (error) {
-                console.error("Error fetching monthly expenses:", error);
+                console.error("Error fetching category expenses:", error);
             }
         };
 
         // Fetch categories for the dropdown or box
         const fetchCategories = async () => {
             try {
-                const response = await axios.get("http://localhost:5050/api/categories");
+                const response = await axios.get("http://localhost:5050/api/today-expenses");
                 setCategories(response.data);
             } catch (error) {
                 console.error("Error fetching categories:", error);
@@ -70,7 +57,6 @@ const Dashboard = () => {
         };
 
         fetchCategoryExpenses();
-        fetchMonthlyExpenses();
         fetchCategories();
     }, []);
 
@@ -88,41 +74,10 @@ const Dashboard = () => {
         ],
     };
 
-    // Data preparation for Line Chart (Month vs Expense Growth)
-    const monthlyData = {
-        labels: monthlyExpenses.map((month) => `Month ${month.month}`), // Month labels
-        datasets: [
-            {
-                label: "Monthly Expense Growth",
-                data: monthlyExpenses.map((expense) => expense.totalAmount), // Total expense for each month
-                fill: false,
-                backgroundColor: "rgba(153, 102, 255, 0.2)",
-                borderColor: "rgba(153, 102, 255, 1)",
-                borderWidth: 1,
-            },
-        ],
-    };
-
     return (
         <div className="container mt-4">
             <h1>Dashboard</h1>
             <p>Welcome to the Expenses Tracker Dashboard</p>
-
-            {/* Total Expenses by Category (Box View) */}
-            <div className="row mb-4">
-                {categories.map((category) => (
-                    <div key={category.id} className="col-md-4 mb-3">
-                        <div className="card">
-                            <div className="card-body">
-                                <h5 className="card-title">{category.name}</h5>
-                                <p className="card-text">
-                                    LKR {categoryExpenses.find(expense => expense.category === category.name)?.totalAmount || 0}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
 
             {/* Bar Chart for Expenses by Category */}
             <div className="mb-5">
@@ -132,18 +87,6 @@ const Dashboard = () => {
                     options={{
                         responsive: true,
                         plugins: { title: { display: true, text: "Expenses by Category" } },
-                    }}
-                />
-            </div>
-
-            {/* Line Chart for Monthly Expense Growth */}
-            <div className="mb-5">
-                <h3>Expense Growth (Month vs Expense)</h3>
-                <Line
-                    data={monthlyData}
-                    options={{
-                        responsive: true,
-                        plugins: { title: { display: true, text: "Monthly Expense Growth" } },
                     }}
                 />
             </div>
